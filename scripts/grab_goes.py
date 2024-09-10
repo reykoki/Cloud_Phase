@@ -117,9 +117,12 @@ def download_goes(dt, lat=None, lon=None, sat_num='16', product='ABI-L1b-Rad', s
         check_sunrise_sunset(dt)
 
     goes_dir = './cloud_data/goes_temp/'
+    print(goes_dir)
     fs = s3fs.S3FileSystem(anon=True)
+    print(fs)
 
     use_fns = get_filelist(dt, fs, lat, lon, sat_num, product, scope, bands)
+    print(use_fns)
     use_fns_mask = get_filelist_mask(dt, fs, lat, lon, sat_num)
     use_fns.append(use_fns_mask)
     file_locs = []

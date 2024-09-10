@@ -143,18 +143,22 @@ def times_sunrise_to_sunset(dt):
 
 def main():
     yr = '2023'
-    dns = np.arange(1,365)
+    dns = np.arange(93,365)
     for dn in dns:
         dn_dt = pytz.utc.localize(datetime.strptime("{}{}".format(yr,dn), '%Y%j'))
         times = times_sunrise_to_sunset(dn_dt)
-        print(times)
         for dt in times:
-            print(dt)
-            sat_fns = download_goes(dt)
-            print(sat_fns)
-            create_dataset(dt, sat_fns)
-            for sat_fn in sat_fns:
-                os.remove(sat_fn)
+            try:
+                sat_fns = download_goes(dt)
+                check_fns = glob("cloud_data/goes_temp/*nc")
+                if len(check_fns) == 4:
+                    create_dataset(dt, sat_fns)
+                for sat_fn in check_fns:
+                    check_fns = glob("cloud_data/goes_temp/*nc")
+                    os.remove(sat_fn)
+            except Exception as e:
+                print(e)
+                
 
 
 
