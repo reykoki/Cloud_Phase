@@ -75,14 +75,14 @@ def check_sunrise_sunset_lat_lon(dt, lat, lon):
 
 def get_filelist(dt, fs, lat, lon, sat_num, product, scope, bands):
     hr, dn, yr = get_dt_str(dt)
-    full_filelist = fs.ls("noaa-goes{}/{}{}/{}/{}/{}/".format(sat_num, product, 'C', yr, dn, hr))
+    full_filelist = fs.ls("noaa-goes{}/{}{}/{}/{}/{}/".format(sat_num, product, scope, yr, dn, hr))
     if sat_num == '17' and len(full_filelist) == 0:
         if yr <= 2018:
             sat_num = '16'
             print("YOU WANTED 17 BUT ITS NOT LAUNCHED")
         elif yr >= 2022:
             sat_num = '18'
-        full_filelist = fs.ls("noaa-goes{}/ABI-L1b-Rad{}/{}/{}/{}/".format(sat_num, 'C', yr, dn, hr))
+        full_filelist = fs.ls("noaa-goes{}/ABI-L1b-Rad{}/{}/{}/{}/".format(sat_num, scope, yr, dn, hr))
     use_fns = get_closest_file(full_filelist, dt, sat_num, bands)
     return use_fns
 
@@ -102,13 +102,13 @@ def get_first_closest_file_mask(fns, dt, sat_num):
     fn_str = 'G{}_{}_{}'.format(sat_num, best_start, best_end[:-3])
     return best_fn
 
-def get_filelist_mask(dt, fs, lat, lon, sat_num, product="ABI-L2-ACTP", scope="C"):
+def get_filelist_mask(dt, fs, lat, lon, sat_num, product="ABI-L2-CTP", scope="F"):
     hr, dn, yr = get_dt_str(dt)
-    full_filelist = fs.ls("noaa-goes{}/{}{}/{}/{}/{}/".format(sat_num, product, 'C', yr, dn, hr))
+    full_filelist = fs.ls("noaa-goes{}/{}{}/{}/{}/{}/".format(sat_num, product, scope, yr, dn, hr))
     use_fns = get_first_closest_file_mask(full_filelist, dt, sat_num)
     return use_fns
 
-def download_goes(dt, lat=None, lon=None, sat_num='16', product='ABI-L1b-Rad', scope='C', check_sun=True, bands=list(range(1,4))):
+def download_goes(dt, lat=None, lon=None, sat_num='16', product='ABI-L1b-Rad', scope='F', check_sun=True, bands=list(range(1,4))):
     # will check sunrise for specified lat/lon
     if check_sun and lat and lon:
         check_sunrise_sunset_lat_lon(dt, lat, lon)
