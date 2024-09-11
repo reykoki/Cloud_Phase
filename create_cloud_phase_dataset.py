@@ -91,8 +91,16 @@ def split_and_save(full_image, full_truth, fn_head, img_size=256):
 
     return fn_list
 
+def get_categorical(pres):
+    pres[np.isnan(pres)] = 0
+    pres[(pres<440) & (pres>0)] = 3 # high
+    pres[(pres>=440) & (pres<=680)] = 2 # mid
+    pres[(pres>680)]= 1 # low
+    pres = pres.astype(int)
+    return pres
+
 def get_one_hot(not_hot):
-    binary = np.take(np.eye(5), not_hot, axis=1)
+    binary = np.take(np.eye(4), not_hot, axis=1)
     binary = binary[1:,:,:]
     binary = np.einsum('ijk->jki', binary)
     return binary
@@ -100,7 +108,7 @@ def get_one_hot(not_hot):
 
 res = 2000 # 5km resolution
 extent = [-2.4e6, -1.6e6, 2.72e6, 1.472e6]
-cloud_mask = ["Phase"]
+cloud_mask = ["PRES"]
 composite = ["cimss_true_color_sunz_rayleigh"]
 
 
@@ -114,13 +122,12 @@ def create_dataset(dt, sat_fns):
     scn = get_scn(sat_fns[:-1], composite, extent, res) # get satpy scn object
     conus_crs = scn[composite[0]].attrs['area'].to_cartopy_crs()
     cloud_scn = get_scn([sat_fns[-1]], cloud_mask, extent, res, reader='abi_l2_nc')
-    RGB = get_RGB(scn, "cimss_true_color_sunz_rayleigh" )
-    cloud_phase = cloud_scn['Phase'].compute().data
-    cloud_phase[cloud_phase==255] = 0 # 255 seems like the number used for where radiance == nan
-    one_hot_mask = get_one_hot(cloud_phase) # from the scene object, extract RGB data for plotting
+    RGB = get_RGB(scn, composite[0])
+    cloud_pres = cloud_scn[cloud_mask[0]].compute().data
+    cloud_pres = get_categorical(cloud_pres)
+    one_hot_mask = get_one_hot(cloud_pres)
     fn_head = sat_fns[0].split('C01_')[-1].split('.')[0].split('_c2')[0]
     tif_fns = split_and_save(RGB, one_hot_mask, fn_head)
-
 
 def times_sunrise_to_sunset(dt):
     west_lon = -124.8
@@ -147,18 +154,23 @@ def main():
     for dn in dns:
         dn_dt = pytz.utc.localize(datetime.strptime("{}{}".format(yr,dn), '%Y%j'))
         times = times_sunrise_to_sunset(dn_dt)
+        check_fns = glob("cloud_data/goes_temp/*nc")
+        if check_fns:
+            for sat_fn in check_fns:
+                os.remove(sat_fn)
         for dt in times:
             try:
                 sat_fns = download_goes(dt)
                 check_fns = glob("cloud_data/goes_temp/*nc")
                 if len(check_fns) == 4:
                     create_dataset(dt, sat_fns)
+                else:
+                    print("DID NOT DOWNLOAD 4 FILES")
                 for sat_fn in check_fns:
-                    check_fns = glob("cloud_data/goes_temp/*nc")
                     os.remove(sat_fn)
             except Exception as e:
                 print(e)
-                
+
 
 
 
