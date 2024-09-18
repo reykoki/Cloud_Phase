@@ -7,7 +7,7 @@ import glob
 #     Medium
 #     Heavy
 
-root_dir = './cloud_data/'
+root_dir = '/scratch/alpine/mecr8410/Cloud_Pressure/cloud_data/'
 
 if len(os.listdir(root_dir)) == 0:
     data_type = ['truth/', 'data/']

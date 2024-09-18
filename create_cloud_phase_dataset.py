@@ -85,8 +85,8 @@ def split_and_save(full_image, full_truth, fn_head, img_size=256):
             truth = full_truth[int(row*img_size):int((row+1)*img_size),int(col*img_size):int((col+1)*img_size)][:]
             fn = '{}_{}_{}.tif'.format(fn_head, row, col)
             density = "Light"
-            skimage.io.imsave('./cloud_data/data/{}/{}'.format(yr, fn), data)
-            skimage.io.imsave('./cloud_data/truth/{}/{}'.format(yr, fn), truth)
+            skimage.io.imsave('/scratch/alpine/mecr8410/Cloud_Pressure/cloud_data/data/{}/{}'.format(yr, fn), data)
+            skimage.io.imsave('/scratch/alpine/mecr8410/Cloud_Pressure/cloud_data/truth/{}/{}'.format(yr, fn), truth)
             fn_list.append(fn)
 
     return fn_list
@@ -148,20 +148,19 @@ def times_sunrise_to_sunset(dt):
         new_time = times[-1] + timedelta(hours=1)
     return times
 
-def main():
-    yr = '2023'
-    dns = np.arange(93,365)
+def main(start_dn, end_dn, yr):
+    dns = list(range(int(start_dn), int(end_dn)+1))
     for dn in dns:
         dn_dt = pytz.utc.localize(datetime.strptime("{}{}".format(yr,dn), '%Y%j'))
         times = times_sunrise_to_sunset(dn_dt)
-        check_fns = glob("cloud_data/goes_temp/*nc")
+        check_fns = glob("/scratch/alpine/mecr8410/Cloud_Pressure/cloud_data/goes_temp/*nc")
         if check_fns:
             for sat_fn in check_fns:
                 os.remove(sat_fn)
         for dt in times:
             try:
                 sat_fns = download_goes(dt)
-                check_fns = glob("cloud_data/goes_temp/*nc")
+                check_fns = glob("/scratch/alpine/mecr8410/Cloud_Pressure/cloud_data/goes_temp/*nc")
                 if len(check_fns) == 4:
                     create_dataset(dt, sat_fns)
                 else:
@@ -171,9 +170,9 @@ def main():
             except Exception as e:
                 print(e)
 
-
-
-
 if __name__ == '__main__':
-    main()
+    start_dn = sys.argv[1]
+    end_dn = sys.argv[2]
+    yr = sys.argv[3]
+    main(start_dn, end_dn, yr)
 

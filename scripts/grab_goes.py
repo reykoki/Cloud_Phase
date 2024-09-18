@@ -116,7 +116,7 @@ def download_goes(dt, lat=None, lon=None, sat_num='16', product='ABI-L1b-Rad', s
     elif check_sun:
         check_sunrise_sunset(dt)
 
-    goes_dir = './cloud_data/goes_temp/'
+    goes_dir = '/scratch/alpine/mecr8410/Cloud_Pressure/cloud_data/goes_temp/'
     print(goes_dir)
     fs = s3fs.S3FileSystem(anon=True)
     print(fs)
